@@ -2,7 +2,12 @@
 #BEGIN_HEADER
 import logging
 import os
+import pandas as pd
 
+from sklearn.neural_network import MLPRegressor
+from sklearn.model_selection import train_test_split
+
+from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.KBaseReportClient import KBaseReport
 #END_HEADER
 
@@ -51,9 +56,49 @@ class NeuralNetworkFBA:
         # ctx is the context object
         # return variables are: output
         #BEGIN run_NeuralNetworkFBA
+
+        #######################################################################
+        #  check out the input data for training
+        #######################################################################
+        print ("Input parameter", params['train_data'])
+        dfu = DataFileUtil(self.callback_url)
+        input_train = dfu.get_objects({'object_refs': [params['train_data']]})['data'][0]
+
+        #print(input_train['data']['instances'])
+
+        trainset = dict()
+        for key in input_train['data']['instances']:
+            idx = int(key)
+            trainset[idx] = []
+            for val in input_train['data']['instances'][key]:
+                if val == '': trainset[idx].append(np.nan)
+                else: trainset[idx].append(float(val))
+        
+        #print(trainset)
+
+        tbl_cols = [info['attribute'] for info in input_train['data']['attributes']]
+        train_df = pd.DataFrame.from_dict(trainset, orient='index', columns=tbl_cols).sort_index()
+
+        print(tbl_cols)
+        print(train_df)
+
+        #######################################################################
+        #  MLP training
+        #######################################################################
+        X = train_df.iloc[:,0:-1].values
+        y = train_df.iloc[:,-1].values
+        X_train, X_test, y_train, y_test = train_test_split(X, y,
+            test_size=0.1, random_state=0)
+        regr = MLPRegressor(random_state=0, max_iter=500).fit(X_train, y_train)
+        regr.predict(X_test)
+        test_r2 = regr.score(X_test, y_test)
+        print("Test R2:", test_r2)
+        #######################################################################
+        #  KBase report
+        #######################################################################
         report = KBaseReport(self.callback_url)
         report_info = report.create({'report': {'objects_created':[],
-                                                'text_message': params['parameter_1']},
+                                                'text_message': "Test R2: {}".format(test_r2)},
                                                 'workspace_name': params['workspace_name']})
         output = {
             'report_name': report_info['name'],

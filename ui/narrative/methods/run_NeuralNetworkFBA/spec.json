@@ -11,15 +11,13 @@
     },
     "parameters": [ 
         {
-            "id": "parameter_1",
+            "id": "train_data",
             "optional": true,
             "advanced": false,
             "allow_multiple": false,
             "default_values": [ "" ],
             "field_type": "text",
-            "text_options": {
-                "valid_ws_types": [ ]
-            }
+            "text_options" : { "valid_ws_types": ["KBaseExperiments.AttributeMapping"] }
         }
     ],
     "behavior": {
@@ -35,8 +33,9 @@
                     "narrative_system_variable": "workspace_id",
                     "target_property": "workspace_id"
                 },{
-                    "input_parameter": "parameter_1",
-                    "target_property": "parameter_1"
+                    "input_parameter": "train_data",
+                    "target_property": "train_data",
+                    "target_type_transform": "resolved-ref"
                 }
             ],
             "output_mapping": [

@@ -63,5 +63,8 @@ class NeuralNetworkFBATest(unittest.TestCase):
         #
         # Check returned data with
         # self.assertEqual(ret[...], ...) or other unittest methods
-        ret = self.serviceImpl.run_NeuralNetworkFBA(self.ctx, {'workspace_name': self.wsName,
-                                                             'parameter_1': 'Hello World!'})
+        params={
+            'workspace_name': self.wsName,
+            "train_data": "44326/2/3"
+        }
+        ret = self.serviceImpl.run_NeuralNetworkFBA(self.ctx, params)
